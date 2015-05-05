@@ -16,6 +16,7 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
 import javax.swing.*;
 import loopcalc.LoopCalc;
+import processManager.Meth;
 import processManager.parts.*;
 
 /**
@@ -30,7 +31,7 @@ public class MainView extends JPanel {
     private Font defaultFont;
     private static JFrame frame;
     private JPanel game, top;
-    private JLabel lblPman, lblSpeed,lblBoiler,lblCondenser;
+    private JLabel lblPman, lblSpeed, lblBoiler, lblCondenser, lblTemperature;
     private final String TITLE = "Mainthread";
     private JPanel jpPompWindow, jpBoilerWindow, jpInfo;
     private JButton btnInfo;
@@ -93,6 +94,11 @@ public class MainView extends JPanel {
         lblSpeed.setText("test");
         lblSpeed.setBounds(lblPman.getX(), lblPman.getY() + 25, width, 20);
         lblSpeed.setVisible(true);
+        
+        lblTemperature = new JLabel("temperature");
+        lblTemperature.setBounds(lblSpeed.getX(), lblSpeed.getY()+lblSpeed.getHeight(), width, 20);
+        lblTemperature.setVisible(true);
+        
 
         jpInfo = new JPanel();
         jpInfo.setBounds(5, 5, controls.getWidth() - 60, controls.getHeight() - 10);
@@ -104,20 +110,19 @@ public class MainView extends JPanel {
         pgbBoiler.setBounds(game.getWidth() / 2 - 150, 150, 60, 100);
         pgbBoiler.setVisible(true);
         pgbBoiler.setValue(60);
-        
+
         lblBoiler = new JLabel("test");
-        lblBoiler.setBounds(pgbBoiler.getX(), pgbBoiler.getY()+pgbBoiler.getHeight()+5, pgbBoiler.getWidth(), 25);
+        lblBoiler.setBounds(pgbBoiler.getX(), pgbBoiler.getY() + pgbBoiler.getHeight() + 5, pgbBoiler.getWidth(), 25);
         lblBoiler.setVisible(true);
-        
 
         pgbCondenser = new JProgressBar(1, 0, 100);
         pgbCondenser.setBounds(pgbBoiler.getX() + pgbBoiler.getWidth() + 20, pgbBoiler.getY(),
                 pgbBoiler.getWidth(), pgbBoiler.getHeight());
         pgbCondenser.setVisible(true);
         pgbCondenser.setValue(20);
-        
+
         lblCondenser = new JLabel("test");
-        lblCondenser.setBounds(pgbCondenser.getX(), pgbCondenser.getY()+pgbCondenser.getHeight()+5, pgbCondenser.getWidth(), 25);
+        lblCondenser.setBounds(pgbCondenser.getX(), pgbCondenser.getY() + pgbCondenser.getHeight() + 5, pgbCondenser.getWidth(), 25);
         lblCondenser.setVisible(true);
 
         btnInfo = new JButton("info");
@@ -137,6 +142,7 @@ public class MainView extends JPanel {
 
         game.add(lblPman);
         game.add(lblSpeed);
+        game.add(lblTemperature);
         game.add(controls);
         game.add(pgbBoiler);
         game.add(lblCondenser);
@@ -179,16 +185,19 @@ public class MainView extends JPanel {
     }
 
     public void setSpeed(double Zsnelheid, double Psnelheid) {
-        lblSpeed.setText("stroomsnelheid: " + Zsnelheid+", stroomsnelheid: " + Psnelheid);
+        lblSpeed.setText("stroomsnelheid: " + Zsnelheid + ", stroomsnelheid: " + Psnelheid);
 
     }
+    public void setTemperature(double Temp){
+        lblTemperature.setText("Temperature: "+Meth.readbackdouble(Temp, 1));
+    }
 
-    public void setBars(double condenser,double boiler) {
-        pgbCondenser.setValue((int)condenser);
-        pgbBoiler.setValue((int)boiler);
-        lblBoiler.setText(boiler+"%");
-        lblCondenser.setText(condenser+"%");
-        
+    public void setBars(double condenser, double boiler) {
+        pgbCondenser.setValue((int) condenser);
+        pgbBoiler.setValue((int) boiler);
+        lblBoiler.setText(boiler + "%");
+        lblCondenser.setText(condenser + "%");
+
     }
 
     private void actionHandler() {

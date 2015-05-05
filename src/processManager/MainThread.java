@@ -5,6 +5,7 @@
  */
 package processManager;
 
+import graphics.DebugPanel;
 import graphics.MainView;
 import graphics.Snowman;
 import javax.swing.JPanel;
@@ -25,14 +26,11 @@ public class MainThread {
     private Turbine turbine;
 
     private MainView frame;
+    private DebugPanel debug;
 
-    
     //Thermodynamics
-    private double Ptemp,Ztemp,Gtemp,Bpressure,heatCap,verdampingswarmte,r,Kelvin,boilingPressure,airVolume;
-    
-    
-    
-    
+    private double Ptemp, Ztemp, Gtemp, Bpressure, heatCap, verdampingswarmte, r, Kelvin, boilingPressure, airVolume;
+
     public MainThread() {
 
         init();
@@ -51,10 +49,6 @@ public class MainThread {
         heatCap = 4.186;
         verdampingswarmte = 2250;
         r = 8.314472;
-        
-        
-        
-        
 
         Labda = 0.038;
 
@@ -66,17 +60,18 @@ public class MainThread {
         pomp = new Pomp(10, 0);
         pomp.buyPart("nieuwe pomp", 80, 1000, 100, 30);
 
-        boiler = new Boiler(0, 5);
+        boiler = new Boiler(0, 50);
         boiler.buyPart("Nieuwe boiler", 30, 25, 50, 1000, 2000, 3.6);
 
-        condenser = new Condenser(12, 12);
+        condenser = new Condenser(12, 50);
         condenser.buyPart("Condenser", 100, 90, 90, 1500, 500, 1.3);
 
         turbine = new Turbine(10, 15);
 
         frame = new MainView(pomp.getJPanel(), boiler.getJPanel());
+        debug = new DebugPanel();
         sumThings();
-        fill(100);
+        fill(50);
 
     }
 
@@ -89,13 +84,33 @@ public class MainThread {
         Pman();
         fluidLevels();
         opvoerDruk();
+        heat();
 
         //set stuff
         frame.setPman(Pman, (int) pompVermogen);
         frame.setSpeed(Meth.readbackdouble(Zsnelheid, 2), Meth.readbackdouble(Psnelheid, 2));
+        frame.setTemperature(Ptemp);
         pomp.tick(pompVermogen, Pman);
+        debug();
         frame.tick();
 
+    }
+    String STzdruk,STpdruk;
+
+    private void debug() {
+
+        String STdichtheid = "dichtheid: " + sDichtheid + " gas: " + gas + " airVolume: " + airVolume;
+
+        String STfluid = "total fluid: " + Meth.readbackdouble(fluid, 3) + " Zfluid: " + Meth.readbackdouble(Zfluid, 1)
+                + " Pfluid: " + Meth.readbackdouble(Pfluid, 1) + " gaslevel: " + Meth.readbackdouble(gas, 1);
+
+        String STpman = "Pman: " + Pman + " opvoerdruk: " + Meth.readbackdouble(opVoerDruk, 1) + "m Pwpl: " + Meth.readbackdouble(Pwpl, 1)
+                + " Pwzl: " + Meth.readbackdouble(Pwzl, 1);
+
+        String STpwzl = "Pwzl: " + Meth.readbackdouble(Pwzl, 1) + "Pa Ztotaallengte: " + Meth.readbackdouble(ZtotaalLengte, 1)
+                + "m Zdiameter: " + Zdiameter / 1000 + " Zsnelheid: " + Meth.readbackdouble(Zsnelheid, 1);
+
+        debug.setStrings(STpman, STdichtheid, STfluid, STpwzl, STzdruk,STpdruk);
     }
 
     public void second() {
@@ -145,20 +160,24 @@ public class MainThread {
         print("Zdiameter: " + Zdiameter);
     }
 
-    private void fill(int percentage) {
-        if (percentage > 100) {
+    private void fill(int Zpercentage) {
+        if (Zpercentage > 100) {
             print("Tried to fill more than 100%! percentage is 100%");
-            percentage = 100;
+            Zpercentage = 100;
         }
+        int Ppercentage = 0;
         gas = 0;
         Zfluid = 0;
         Pfluid = 0;
 
         //double volume = boiler.getVolume() + condenser.getVolume() + (((Math.pow((0.09), 2) * Math.PI) / 4) * (PtotaalLengte + ZtotaalLengte));
-        Zfluid = condenser.getVolume() * Rho * ((double) percentage / 100);
+        Zfluid = condenser.getVolume() * Rho * ((double) Zpercentage / 100);
         print("volume condenser: " + Meth.readbackdouble(condenser.getVolume(), 2) + " Zfluid: " + Meth.readbackdouble(Zfluid, 1));
 
         condenser.setFill((Zfluid / Rho) - ((Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4) * ZtotaalLengte);
+        
+        Pfluid = boiler.getVolume() * Rho * ((double) Ppercentage / 100);
+        boiler.setFill((Zfluid / Rho) - ((Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4) * ZtotaalLengte);
 
         fluid = Zfluid + Pfluid + gas;
         oldFluid = fluid;
@@ -196,28 +215,47 @@ public class MainThread {
 
     private void opvoerDruk() {
         double zuigKolom, persKolom, zuigHoogte, persHoogte;
-         //zuig
+        //zuig
+        
+        String zType = "niks";
+        String pType = "niks";
 
         if (Zfluid <= (Hzuig * (Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4)) {
             zuigHoogte = 0;
+            zType = "eerste";
         } else if (Zfluid <= ((Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4) * ZtotaalLengte) {
             zuigHoogte = ((Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4) / (Zfluid - (Hzuig * (Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4));
+            zType = "tweede";
         } else {
             zuigHoogte = Zfluid;
+            zType = "derde";
         }
         zuigKolom = zuigHoogte + condenser.getFillHeight();
-        if (Pfluid <= (Pzuig * (Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4)) {
+        if (Pfluid <= (Hpers * (Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4)*Rho) {
             persHoogte = 0;
-        } else if (Pfluid <= ((Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4) * PtotaalLengte) {
-            persHoogte = ((Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4) / (Pfluid - (Pzuig * (Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4));
+            pType = "eerste";
+            
+        } else if (Pfluid <= ((Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4) * PtotaalLengte*Rho) {
+            persHoogte = ((Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4) / (Pfluid - (Hpers * (Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4));
+            pType = "tweede";
         } else {
-            persHoogte = Pfluid;
+            persHoogte = Vpers;
+            pType = "derde";
         }
         persKolom = persHoogte + boiler.getFillHeight();
         opVoerDruk = persKolom - zuigKolom;
+
+        STzdruk = "Zuigkolom: " + Meth.readbackdouble(zuigKolom, 1) + " zuighoogte: " + Meth.readbackdouble(zuigHoogte, 1)
+                + " condenser vulgraad: " + Meth.readbackdouble(condenser.getFillHeight(), 3)+" type: "+zType;
+        
+        STpdruk = "Perskolom: "
+                + Meth.readbackdouble(persKolom, 1) + " pershoogte: " + Meth.readbackdouble(persHoogte, 1) + " boiler vulgraad: "
+                + Meth.readbackdouble(boiler.getFillHeight(), 3)+" type: "+pType;
+
     }
 
     private void totalFluid() {
+
         fluid = Zfluid + Pfluid + gas;
         if (Meth.readbackdouble(fluid, 6) != Meth.readbackdouble(oldFluid, 6)) {
             print("Error line 186! leakage! Change: " + Meth.readbackdouble(Math.abs((fluid - oldFluid) * 100000), 2) + " liter");
@@ -229,47 +267,19 @@ public class MainThread {
 
         Abuis = Math.pow(Zdiameter / 1000, 2) * (Math.PI / 4);
         Zsnelheid = Volumestroom / Abuis;
-        Pwzl = Labda * (ZtotaalLengte / (Zdiameter / 1000)) * (1 / 2) * Rho * Math.pow(Zsnelheid, 2) + Zeta * (1 / 2) * Rho * Math.pow(Zsnelheid, 2);
+        Pwzl = Labda * (ZtotaalLengte / (Zdiameter / 1000)) * (1 / 2) * Rho * Math.pow(Zsnelheid, 2) + Zeta * 0.5 * Rho * Math.pow(Zsnelheid, 2);
         Abuis = Math.pow(Pdiameter / 1000, 2) * (Math.PI / 4);
         Psnelheid = Volumestroom / Abuis;
         Pwpl = Labda * (PtotaalLengte / (Pdiameter / 1000)) * 0.5 * Rho * Math.pow(Psnelheid, 2) + Zeta * 0.5 * Rho * Math.pow(Psnelheid, 2);
         pompVermogen = (Volumestroom * Pman);
         Pman = (int) ((opVoerDruk) * Rho * g + Pwpl + Pwzl);
-    }
-    
-    private double sDichtheid, heatJoule;
-    
-        public void heat() {
-            //Work in Progress
-
-            boolean isRunning = true;
-            double ticks = 50;
-            double fillPercentage = boiler.getFillHeight()*((Math.pow(boiler.getBoilerDiameter()/1000, 2)*Math.PI)/4);
-        
-            boilingPressure = Meth.boilingPressure(Ptemp);
-            Kelvin = Ptemp + 273;
-            airVolume = boiler.getVolume() - fillPercentage;
-            //steam pressure
-            sDichtheid = gas / airVolume;
-            opVoerDruk = Kelvin * r * (sDichtheid / 18.02);
-            //steam pressure
-            if (boilingPressure <= opVoerDruk) {
-                if (isRunning) {
-                    Ptemp = Ptemp + (heatJoule / ((gas * opVoerDruk) + fillPercentage * heatCap)) / ticks;
-                }
-            } else {
-
-                double oldFill = fillPercentage;
-                fillPercentage = fillPercentage - ((boilingPressure - opVoerDruk) * heatCap);
-                Ptemp = Ptemp - ((oldFill - fillPercentage) * heatCap);
-
-                if (isRunning) {
-                    fillPercentage = fillPercentage - (heatJoule / verdampingswarmte) / ticks;
-                    gas = gas + (heatJoule / verdampingswarmte) / ticks;
-                }
-            }
-            }
-        
 
     }
 
+    private double sDichtheid, heatJoule = 500;
+
+    public void heat() {
+        //Work in Progress
+
+    }
+}
