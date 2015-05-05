@@ -92,6 +92,9 @@ public class Condenser extends Part{
     public int getCondenserHeight(){
         return condenserHeight;
     }
+    public void doSomething(){
+        //test for github
+    }
 
     
     
