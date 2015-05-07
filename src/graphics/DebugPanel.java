@@ -8,10 +8,15 @@ package graphics;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import static javax.swing.Spring.width;
+import loopcalc.LoopCalc;
 
 /**
  *
@@ -23,35 +28,39 @@ public class DebugPanel {
     private static JFrame frame;
     private JPanel panel;
     private final String TITLE = "Mainthread";
-
-    private JLabel lblOne, lblTwo, lblThree, lblFour, lblFive, lblSix, lblSeven;
+    private int theY, labelHeight;
+    private JButton btnClose;
+    private JLabel lblOne, lblTwo, lblThree, lblFour, lblFive, lblSix, lblSeven,lblEight,lblNine,lblTen,lblEleven,lblTwelve;
 
     public DebugPanel() {
         WIDTH = 500;
         HEIGHT = 530;
         borderSize = 5;
+        theY = borderSize;
+        labelHeight = 20;
 
         drawPanel();
         init();
+        actionHandler();
 
     }
 
     private void init() {
         frame = new JFrame(TITLE);
         frame.setUndecorated(true);
-        frame.add(panel);
+
         frame.repaint();
-        frame.setLayout(null);
+        //frame.setLayout(null);
         frame.pack();
         frame.setSize(WIDTH + 6, HEIGHT);
         frame.setAlwaysOnTop(true);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        frame.setLocation(screenSize.width-WIDTH-25, screenSize.height-HEIGHT-50);
+        frame.setLocation(screenSize.width - WIDTH - 25, screenSize.height - HEIGHT - 50);
         frame.setResizable(false);
         frame.setDefaultCloseOperation(3);
         frame.setVisible(true);
-
+        frame.add(panel);
     }
 
     private void drawPanel() {
@@ -60,43 +69,52 @@ public class DebugPanel {
         panel.setVisible(true);
         panel.setSize(WIDTH + 6, HEIGHT);
         panel.setBackground(Color.black);
+        panel.setLayout(null);
         panel.setBorder(BorderFactory.createMatteBorder(borderSize, borderSize, borderSize, borderSize, Color.DARK_GRAY));
 
-        lblOne = new JLabel("test");
+        btnClose = new JButton("close");
+        btnClose.setSize(80, 20);
+        btnClose.setLocation(WIDTH - borderSize - btnClose.getWidth(), borderSize);
+        btnClose.setVisible(true);
+
+        lblOne = new JLabel();
         lblOne.setForeground(Color.YELLOW);
-        lblOne.setBounds(3, 3, WIDTH, WIDTH);
+        lblOne.setBounds(borderSize + 2, borderSize + 2, WIDTH, labelHeight);
         lblOne.setVisible(true);
 
-        lblTwo = new JLabel("test");
+        lblTwo = new JLabel();
         lblTwo.setForeground(Color.YELLOW);
-        lblTwo.setBounds(3, 3, WIDTH, WIDTH);
+        lblTwo.setBounds(lblOne.getX(), setTheY(), WIDTH, labelHeight);
         lblTwo.setVisible(true);
 
-        lblThree = new JLabel("test");
+        lblThree = new JLabel();
         lblThree.setForeground(Color.YELLOW);
-        lblThree.setBounds(3, 3, WIDTH, WIDTH);
+        lblThree.setBounds(lblTwo.getX(), setTheY(), WIDTH, labelHeight);
         lblThree.setVisible(true);
 
-        lblFour = new JLabel("test");
+        lblFour = new JLabel();
         lblFour.setForeground(Color.YELLOW);
-        lblFour.setBounds(3, 3, WIDTH, WIDTH);
+        lblFour.setBounds(lblThree.getX(), setTheY(), WIDTH, labelHeight);
         lblFour.setVisible(true);
 
-        lblFive = new JLabel("test");
+        lblFive = new JLabel();
         lblFive.setForeground(Color.YELLOW);
-        lblFive.setBounds(3, 3, WIDTH, WIDTH);
+        lblFive.setBounds(lblFour.getX(), setTheY(), WIDTH, labelHeight);
         lblFive.setVisible(true);
 
-        lblSix = new JLabel("test");
+        lblSix = new JLabel();
         lblSix.setForeground(Color.YELLOW);
-        lblSix.setBounds(3, 3, WIDTH, WIDTH);
+        lblSix.setBounds(lblFive.getX(), setTheY(), WIDTH, labelHeight);
         lblSix.setVisible(true);
 
         lblSeven = new JLabel("test");
         lblSeven.setForeground(Color.YELLOW);
-        lblSeven.setBounds(3, 3, WIDTH, WIDTH);
+        lblSeven.setBounds(lblSix.getX(), setTheY(), WIDTH, labelHeight);
         lblSeven.setVisible(true);
+        
+        
 
+        panel.add(btnClose);
         panel.add(lblOne);
         panel.add(lblTwo);
         panel.add(lblThree);
@@ -107,13 +125,35 @@ public class DebugPanel {
 
     }
 
-    public void setStrings(String one, String two, String three,String four,String five,String six) {
-        lblOne.setText(one);
-        lblTwo.setText(two);
-        lblThree.setText(three);
-        lblFour.setText(four);
-        lblFive.setText(five);
-        lblSix.setText(six);
+    public void setStrings(String one, String two, String three, String four, String five, String six, String seven) {
+        lblOne.setText("1-> " + one);
+        lblTwo.setText("2-> " + two);
+        lblThree.setText("3-> " + three);
+        lblFour.setText("4-> " + four);
+        lblFive.setText("5-> " + five);
+        lblSix.setText("6-> " + six);
+        lblSeven.setText("7-> " + seven);
+
     }
+
+    private int setTheY() {
+        theY += labelHeight;
+        return theY;
+    }
+
+    private void print(String s) {
+        String message = "Debugpanel: " + s;
+        LoopCalc.print(message);
+    }
+
+    private void actionHandler() {
+        btnClose.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(3);
+
+            }
+        });
+    }
+
 
 }

@@ -78,7 +78,7 @@ public class MainView extends JPanel {
         game.setLayout(null);
         game.setBorder(BorderFactory.createMatteBorder(borderSize, borderSize, borderSize, borderSize, Color.DARK_GRAY));
         game.setVisible(true);
-
+        
         controls = new JPanel();
         controls.setBounds(0, height - 150, width, 150);
         controls.setBackground(Color.DARK_GRAY);
@@ -148,6 +148,7 @@ public class MainView extends JPanel {
         game.add(lblCondenser);
         game.add(lblBoiler);
         game.add(pgbCondenser);
+        
         top = new JPanel();
         top.setBounds(0, 0, width, topOffset);
         top.setBackground(Color.CYAN);
@@ -185,7 +186,7 @@ public class MainView extends JPanel {
     }
 
     public void setSpeed(double Zsnelheid, double Psnelheid) {
-        lblSpeed.setText("stroomsnelheid: " + Zsnelheid + ", stroomsnelheid: " + Psnelheid);
+        lblSpeed.setText("zuigSnelheid: " + Zsnelheid + ", persSnelheid: " + Psnelheid);
 
     }
     public void setTemperature(double Temp){
