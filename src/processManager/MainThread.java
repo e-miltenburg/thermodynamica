@@ -7,7 +7,10 @@ package processManager;
 
 import graphics.DebugPanel;
 import graphics.MainView;
-import graphics.Snowman;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import javax.swing.JPanel;
 import loopcalc.LoopCalc;
 import processManager.parts.*;
@@ -20,9 +23,9 @@ public class MainThread {
     private double Vzuig, Vpers, Hzuig, Hpers, Pzuig, Ppers, Rho, g, Pwzl, Pwpl, Labda, zuigZeta, persZeta,
             ZtotaalLengte, PtotaalLengte, viscositeit, Pdiameter, Zdiameter, ruwheid,
             Psnelheid, Zsnelheid, Volumestroom, Abuis, rendement, pompVermogen;
-    private double opVoerDruk; 
+    private double opVoerDruk;
     private double Zfluid = 0, Pfluid = 0, gas = 0, fluid = 0;//fluid in kg's in the system
-    private double oldFluid = 0;    
+    private double oldFluid = 0;
     private Pomp pomp;
     private Boiler boiler;
     private Condenser condenser;
@@ -36,7 +39,15 @@ public class MainThread {
     //Thermodynamics
     private double Ptemp, Ztemp, Gtemp, Bpressure, heatCap, verdampingswarmte;
 
-    public MainThread() {
+    public MainThread() throws FileNotFoundException, IOException {
+
+        BufferedReader in = new BufferedReader(new FileReader("C:/test.txt"));
+
+        String line;
+        while ((line = in.readLine()) != null) {
+            System.out.println(line);
+        }
+        in.close();
 
         init();
     }
@@ -188,7 +199,6 @@ public class MainThread {
 
     }
 
-
     //-----------------------
     //--Thread Calculations--
     //-----------------------
@@ -214,7 +224,6 @@ public class MainThread {
         frame.setBars((condenser.getFill() / condenser.getVolume() * 100), boiler.getFill() / boiler.getVolume() * 100);
 
     }
-
 
     private void opvoerDruk() {
         double zuigKolom, persKolom, zuigHoogte, persHoogte;

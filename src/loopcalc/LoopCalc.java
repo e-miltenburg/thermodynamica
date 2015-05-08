@@ -5,6 +5,7 @@
  */
 package loopcalc;
 
+import java.io.IOException;
 import processManager.MainThread;
 
 /**
@@ -23,7 +24,7 @@ public class LoopCalc {
     /**
      * @param args the command line arguments
      */
-    public LoopCalc() {
+    public LoopCalc() throws IOException {
         isRunning = true;
         vSync = false;
         //calc = new Calcer();        
@@ -89,7 +90,7 @@ public class LoopCalc {
         
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         LoopCalc main = new LoopCalc();
     }
