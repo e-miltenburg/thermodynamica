@@ -85,7 +85,7 @@ public class Condenser extends Part {
     public double getFill() {
         return filled;
     }
-
+int count = 0;
     public void setFill(double m3) {
         if (m3 < 0) {
             m3 = 0;
@@ -93,7 +93,14 @@ public class Condenser extends Part {
         this.filled = m3;
         //print("Capacity: "+Meth.readbackdouble(getVolume(), 2)+" m3, "+Meth.readbackdouble(m3, 2)+" Filled");
         if (filled <= 0) {
-            print("empty!");
+            
+            if(count<=500)
+            toDebug("empty!");
+            
+            else if(count >2000){
+                 toDebug("tada!");
+            }
+            count++;
         }
     }
 

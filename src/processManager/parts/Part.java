@@ -96,6 +96,10 @@ public class Part{
         String message = "PartID: "+partID+" name: "+name+"; "+s;
         LoopCalc.print(message);
     }
+        protected void toDebug(String s){
+            LoopCalc.debug(s);
+            print("test (un)succesful");
+        }
     
     
     

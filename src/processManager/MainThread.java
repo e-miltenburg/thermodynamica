@@ -30,34 +30,34 @@ public class MainThread {
     private Boiler boiler;
     private Condenser condenser;
     private Turbine turbine;
-
+    private BufferedReader in;
     private boolean printOnce = false;
 
     private MainView frame;
-    private DebugPanel debug;
 
     //Thermodynamics
-    private double Ptemp, Ztemp, Gtemp, Bpressure, heatCap, verdampingswarmte;
-
     public MainThread() throws FileNotFoundException, IOException {
 
-        BufferedReader in = new BufferedReader(new FileReader("C:/test.txt"));
-
-        String line;
-        while ((line = in.readLine()) != null) {
-            System.out.println(line);
-        }
-        in.close();
+        //readTXT();
 
         init();
     }
 
-    public void init() {
+    private void readTXT() throws IOException {
+        in = new BufferedReader(new FileReader("C:/test.txt"));
+        String line;
+        while ((line = in.readLine()) != null) {
+            if(line.equals("boiler")){
+                print("yay! "+line);
+            }
+    //print("booh"+line);
+        }
+        in.close();
+    }
+
+    public void init() throws IOException {
 
         g = 9.81;
-        Ptemp = 20;
-        Ztemp = 20;
-        Gtemp = 20;
 
         //water
         Rho = 1000;
@@ -77,9 +77,8 @@ public class MainThread {
         turbine = new Turbine(10, 15);
 
         frame = new MainView(pomp.getJPanel(), boiler.getJPanel());
-        debug = new DebugPanel();
         sumThings();
-        fill(100);
+        fill(100, 50);
 
     }
 
@@ -96,42 +95,46 @@ public class MainThread {
         //set stuff
         frame.setPman(Pman, (int) pompVermogen);
         frame.setSpeed(Meth.readbackdouble(Zsnelheid, 2), Meth.readbackdouble(Psnelheid, 2));
-        frame.setTemperature(Ptemp);
         pomp.tick(pompVermogen, Pman);
+        debug("Pman: [" + Pman + " Pa] Pwpl: [" + Meth.readbackdouble(Pwpl, 1)
+                + " Pa] Pwzl: [" + Meth.readbackdouble(Pwzl, 1) + " Pa]");
+
+        debug("Zsnelheid: " + Meth.readbackdouble(Zsnelheid, 2) + "m/s Zdiameter: " + Meth.readbackdouble(Zdiameter, 1)
+                + "mm Volumestroom: " + Meth.readbackdouble(Volumestroom * 3600, 1) + "m3/hour");
+
+        debug("Psnelheid: " + Meth.readbackdouble(Psnelheid, 2) + "m/s Pdiameter: " + Meth.readbackdouble(Pdiameter, 1)
+                + "mm Volumestroom: " + Meth.readbackdouble(Volumestroom, 1) + "m3/sec");
+
+        debug("Pwzl: " + Meth.readbackdouble(Pwzl, 1) + "Pa Ztotaallengte: " + Meth.readbackdouble(ZtotaalLengte, 1)
+                + "m Zdiameter: " + Zdiameter / 1000 + " Zsnelheid: " + Meth.readbackdouble(Zsnelheid, 1));
+
+        debug("total fluid: " + Meth.readbackdouble(fluid, 3) + " Zfluid: " + Meth.readbackdouble(Zfluid, 1)
+                + " Pfluid: " + Meth.readbackdouble(Pfluid, 1) + " gaslevel: " + Meth.readbackdouble(gas, 1));
         debug();
+
         frame.tick();
 
     }
-    String STfive, STsix;
 
     private void debug() {
 
-        String STone = "Pman: [" + Pman + " Pa] Pwpl: [" + Meth.readbackdouble(Pwpl, 1)
-                + " Pa] Pwzl: [" + Meth.readbackdouble(Pwzl, 1) + " Pa]";
-
-        String STtwo = "Zsnelheid: " + Meth.readbackdouble(Zsnelheid, 2) + "m/s Zdiameter: " + Meth.readbackdouble(Zdiameter, 1)
-                + "mm Volumestroom: " + Volumestroom + "m3/sec";
-
-        String STthree = "Psnelheid: " + Meth.readbackdouble(Psnelheid, 2) + "m/s Pdiameter: " + Meth.readbackdouble(Pdiameter, 1)
-                + "mm Volumestroom: " + Volumestroom + "m3/sec";
-
-        String STfour = "Pwzl: " + Meth.readbackdouble(Pwzl, 1) + "Pa Ztotaallengte: " + Meth.readbackdouble(ZtotaalLengte, 1)
-                + "m Zdiameter: " + Zdiameter / 1000 + " Zsnelheid: " + Meth.readbackdouble(Zsnelheid, 1);
-
-        String STseven = "total fluid: " + Meth.readbackdouble(fluid, 3) + " Zfluid: " + Meth.readbackdouble(Zfluid, 1)
-                + " Pfluid: " + Meth.readbackdouble(Pfluid, 1) + " gaslevel: " + Meth.readbackdouble(gas, 1);
-        debug.setStrings(STone, STtwo, STthree, STfour, STfive, STsix, STseven);
     }
 
     public void second() {
 
         totalFluid();
         sumThings();
+
     }
 
     private void print(String s) {
-        String message = "MainThread " + s;
+        String message = "MT " + s;
         LoopCalc.print(message);
+    }
+
+    private void debug(String s) {
+        String message = "MT: " + s;
+        LoopCalc.debug(message);
     }
 
     private void sumThings() {
@@ -175,24 +178,27 @@ public class MainThread {
 
     }
 
-    private void fill(int Zpercentage) {
+    private void fill(int Zpercentage, int Ppercentage) {
         if (Zpercentage > 100) {
-            print("Tried to fill more than 100%! percentage is 100%");
+            print("Tried to fill more than 100%! Zpercentage is 100%");
             Zpercentage = 100;
         }
-        int Ppercentage = 0;
+        if (Ppercentage > 100) {
+            print("Tried to fill more than 100%! Ppercentage is 100%");
+            Ppercentage = 100;
+        }
         gas = 0;
         Zfluid = 0;
         Pfluid = 0;
 
         //double volume = boiler.getVolume() + condenser.getVolume() + (((Math.pow((0.09), 2) * Math.PI) / 4) * (PtotaalLengte + ZtotaalLengte));
-        Zfluid = condenser.getVolume() * Rho * ((double) Zpercentage / 100) + getArea(Zdiameter) * ZtotaalLengte * Rho;
+        Zfluid = condenser.getVolume() * Rho * ((double) Zpercentage / 100) + Meth.getArea(Zdiameter) * ZtotaalLengte * Rho;
         print("volume condenser: " + Meth.readbackdouble(condenser.getVolume(), 2) + " Zfluid: " + Meth.readbackdouble(Zfluid, 1));
 
-        condenser.setFill((Zfluid / Rho) - getArea(Zdiameter) * ZtotaalLengte);
+        condenser.setFill((Zfluid / Rho) - Meth.getArea(Zdiameter) * ZtotaalLengte);
 
-        Pfluid = boiler.getVolume() * Rho * ((double) Ppercentage / 100);
-        boiler.setFill((Zfluid / Rho) - ((Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4) * ZtotaalLengte);
+        Pfluid = boiler.getVolume() * Rho * ((double) Ppercentage / 100) + Meth.getArea(Pdiameter) * PtotaalLengte * Rho;
+        boiler.setFill((Pfluid / Rho) - Meth.getArea(Pdiameter) * PtotaalLengte);
 
         fluid = Zfluid + Pfluid + gas;
         oldFluid = fluid;
@@ -214,8 +220,15 @@ public class MainThread {
             Pfluid += deltaVol;
             Zfluid -= deltaVol;
         } else {
-            print("Zfluid is empty!");
-            print("fluid: " + fluid);
+
+            print("Zfluid is empty!\n  fluid: " + fluid);
+
+        }
+        if (Pfluid > boiler.getVolume() * Rho + Meth.getArea(Pdiameter) * PtotaalLengte * Rho) {
+            overFlow();
+        }
+        if (Zfluid > condenser.getVolume() * Rho + Meth.getArea(Zdiameter) * ZtotaalLengte * Rho) {
+            overFlow();
         }
 
         boiler.setFill((Pfluid / Rho) - ((Math.pow((Pdiameter / 1000), 2) * Math.PI) / 4) * PtotaalLengte);;
@@ -224,6 +237,7 @@ public class MainThread {
         frame.setBars((condenser.getFill() / condenser.getVolume() * 100), boiler.getFill() / boiler.getVolume() * 100);
 
     }
+    private boolean emptyPrint = false;
 
     private void opvoerDruk() {
         double zuigKolom, persKolom, zuigHoogte, persHoogte;
@@ -235,10 +249,10 @@ public class MainThread {
         if (Zfluid <= (Hzuig * (Math.pow((Zdiameter / 1000), 2) * Math.PI) / 4)) {
             zuigHoogte = 0;
             zType = "eerste";
-        } else if (Zfluid <= getArea(Zdiameter) * ZtotaalLengte) {
+        } else if (Zfluid <= Meth.getArea(Zdiameter) * ZtotaalLengte) {
 
-            zuigHoogte = (((Zfluid / Rho - (Hzuig * getArea(Zdiameter))))
-                    / getArea(Zdiameter));
+            zuigHoogte = (((Zfluid / Rho - (Hzuig * Meth.getArea(Zdiameter))))
+                    / Meth.getArea(Zdiameter));
 
             zType = "tweede";
         } else {
@@ -246,13 +260,13 @@ public class MainThread {
             zType = "derde";
         }
 
-        if (Pfluid <= (Hpers * getArea(Pdiameter)) * Rho) {
+        if (Pfluid <= (Hpers * Meth.getArea(Pdiameter)) * Rho) {
             persHoogte = 0;
             pType = "eerste";
 
-        } else if (Pfluid <= getArea(Pdiameter) * PtotaalLengte * Rho) {
-            persHoogte = (((Pfluid / Rho - (Hpers * getArea(Pdiameter))))
-                    / getArea(Pdiameter));
+        } else if (Pfluid <= Meth.getArea(Pdiameter) * PtotaalLengte * Rho) {
+            persHoogte = (((Pfluid / Rho - (Hpers * Meth.getArea(Pdiameter))))
+                    / Meth.getArea(Pdiameter));
 
             pType = "tweede";
         } else {
@@ -263,18 +277,13 @@ public class MainThread {
         persKolom = persHoogte + boiler.getFillHeight();
         opVoerDruk = persKolom - zuigKolom;
 
-        STfive = "Zuigkolom: " + Meth.readbackdouble(zuigKolom, 1) + " zuighoogte: " + Meth.readbackdouble(zuigHoogte, 1)
-                + " condenser vulgraad: " + Meth.readbackdouble(condenser.getFillHeight(), 3) + " type: " + zType;
+        debug("Zuigkolom: " + Meth.readbackdouble(zuigKolom, 1) + " zuighoogte: " + Meth.readbackdouble(zuigHoogte, 1)
+                + " condenser vulgraad: " + Meth.readbackdouble(condenser.getFillHeight(), 3) + " type: " + zType);
 
-        STsix = "Perskolom: " + Meth.readbackdouble(persKolom, 1) + " pershoogte: "
+        debug("Perskolom: " + Meth.readbackdouble(persKolom, 1) + " pershoogte: "
                 + Meth.readbackdouble(persHoogte, 1) + " boiler vulgraad: "
-                + Meth.readbackdouble(boiler.getFillHeight(), 3) + " type: " + pType;
+                + Meth.readbackdouble(boiler.getFillHeight(), 3) + " type: " + pType);
 
-    }
-
-    private double getArea(double diameter) { //takes diameter in mm, returns Area in m2
-        double area = (Math.pow((diameter / 1000), 2) * Math.PI) / 4;
-        return area;
     }
 
     private void totalFluid() {
@@ -288,9 +297,9 @@ public class MainThread {
 
     private void Pman() {
 
-        Zsnelheid = Volumestroom / getArea(Zdiameter);
+        Zsnelheid = Volumestroom / Meth.getArea(Zdiameter);
         Pwzl = Labda * (ZtotaalLengte / (Zdiameter / 1000)) * 0.5 * Rho * Math.pow(Zsnelheid, 2) + zuigZeta * 0.5 * Rho * Math.pow(Zsnelheid, 2);
-        Psnelheid = Volumestroom / getArea(Pdiameter);
+        Psnelheid = Volumestroom / Meth.getArea(Pdiameter);
         Pwpl = Labda * (PtotaalLengte / (Pdiameter / 1000)) * 0.5 * Rho * Math.pow(Psnelheid, 2) + persZeta * 0.5 * Rho * Math.pow(Psnelheid, 2);
         pompVermogen = (Volumestroom * Pman);
         Pman = (int) ((opVoerDruk) * Rho * g + Pwpl + Pwzl);
@@ -300,5 +309,9 @@ public class MainThread {
     public void heat() {
         //Work in Progress
 
+    }
+
+    private void overFlow() {
+        Pfluid = boiler.getVolume() * Rho + Meth.getArea(Pdiameter) * PtotaalLengte * Rho;
     }
 }

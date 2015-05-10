@@ -33,6 +33,9 @@ public class Boiler extends Part {
         drawPanel();
 
     }
+    private void readBoilers(int i){
+        
+    }
 
     protected void drawPanel() {
         super.drawPanel();

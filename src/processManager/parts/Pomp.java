@@ -240,7 +240,7 @@ public class Pomp extends Part {
                 });
                 btnBuy2.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        buyPart("Pomp 2",70,2000000,450,90);
+                        buyPart("Pomp 2",70,2000000,850,90);
                         info.dispose();
                     }
                 });

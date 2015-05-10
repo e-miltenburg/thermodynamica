@@ -25,4 +25,8 @@ public class Meth {
                 - 0.0002397414508841 * Math.pow(waterTemp, 2) + 0.0086591352573441 * waterTemp - 0.0966981313313458;
         return pressure;
     }
+        public static double getArea(double diameter) { //takes diameter in mm, returns Area in m2
+        double area = (Math.pow((diameter / 1000), 2) * Math.PI) / 4;
+        return area;
+    }
 }

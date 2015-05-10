@@ -5,6 +5,7 @@
  */
 package loopcalc;
 
+import graphics.DebugPanel;
 import java.io.IOException;
 import processManager.MainThread;
 
@@ -15,11 +16,12 @@ import processManager.MainThread;
 public class LoopCalc {
 
     private static int frames, ticks;
-    private static int sPrintTicker = 0;
+    private static int sPrintTicker = 0,sDebugTicker=0;
     private boolean isRunning, vSync, shouldRender;
     private MainThread calc;
     private static int runTime = 0;
     private static String frameName = " ";
+    private static DebugPanel debug = new DebugPanel();;
 
     /**
      * @param args the command line arguments
@@ -77,6 +79,7 @@ public class LoopCalc {
 
     private void tick() {
         calc.tick();
+        writeDebug();
     }
 
     private void frame() {
@@ -87,6 +90,7 @@ public class LoopCalc {
         frameName = ticks + " ticks, " + frames + " frames, T+" + runTime + " seconds";
         calc.second();
         runTime++;
+   
         
     }
 
@@ -104,5 +108,12 @@ public class LoopCalc {
         System.out.println(sPrintTicker+" "+s);
         sPrintTicker++;
     }
+    public static void debug(String s){
+        debug.setString(s);
+    }
+    private static void writeDebug(){
+        debug.writeStrings();
+    }
+
 
 }
