@@ -1,4 +1,13 @@
-Dit is een
-test
-werkt dit?
-boiler
+<pomp>
+Be pump
+<end>
+<boiler>
+be Boiler
+<end>
+<turbine>
+Be turbine
+<end>
+<condenser>
+Be condenser
+<end>
+bah

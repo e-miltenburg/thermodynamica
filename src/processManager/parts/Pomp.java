@@ -10,14 +10,12 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import loopcalc.Calculations;
 import loopcalc.LoopCalc;
 import processManager.MainThread;
 import processManager.Meth;
 
 public class Pomp extends Part {
 
-    private Calculations calc;
     private int maxCapacity, maxFlowrate, flowrate;
     private double usedCapacity;
     private boolean isRunning;

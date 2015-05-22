@@ -8,9 +8,12 @@ package processManager;
 import graphics.DebugPanel;
 import graphics.MainView;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import javax.swing.JPanel;
 import loopcalc.LoopCalc;
 import processManager.parts.*;
@@ -18,12 +21,10 @@ import processManager.parts.*;
 public class MainThread {
 
     private int Pman, slow = 0;
-
-    private JPanel panel;
     private double Vzuig, Vpers, Hzuig, Hpers, Pzuig, Ppers, Rho, g, Pwzl, Pwpl, Labda, zuigZeta, persZeta,
             ZtotaalLengte, PtotaalLengte, viscositeit, Pdiameter, Zdiameter, ruwheid,
-            Psnelheid, Zsnelheid, Volumestroom, Abuis, rendement, pompVermogen;
-    private double opVoerDruk;
+            Psnelheid, Zsnelheid, Volumestroom, pompVermogen;
+    private double opVoerDruk, temp = 20;
     private double Zfluid = 0, Pfluid = 0, gas = 0, fluid = 0;//fluid in kg's in the system
     private double oldFluid = 0;
     private Pomp pomp;
@@ -36,23 +37,86 @@ public class MainThread {
     private MainView frame;
 
     //Thermodynamics
-    public MainThread() throws FileNotFoundException, IOException {
+    public MainThread() throws IOException {
 
         //readTXT();
-
         init();
     }
 
-    private void readTXT() throws IOException {
-        in = new BufferedReader(new FileReader("C:/test.txt"));
-        String line;
-        while ((line = in.readLine()) != null) {
-            if(line.equals("boiler")){
-                print("yay! "+line);
+    private void readTXT() throws IOException, URISyntaxException {
+        URL path = ClassLoader.getSystemResource("processManager/test.txt");
+        if (path == null) {
+            print("Warning! save file not found!");
+        } else {
+
+            print("Save file found under: " + path);
+            File f = new File(path.toURI());
+
+            in = new BufferedReader(new FileReader(f));
+            String line;
+            boolean pomp = false, condenser = false, boiler = false, turbine = false;
+            while ((line = in.readLine()) != null) {
+
+                if (pomp || condenser || boiler || turbine) {
+                    if (pomp) {
+                        if (line.equals("<end>")) {
+                            pomp = false;
+                            print("end of pomp");
+                        } else {
+                            print("pomp: " + line);
+                        }
+                    }
+                    if (condenser) {
+                        if (line.equals("<end>")) {
+                            condenser = false;
+                            print("end of condenser");
+                        } else {
+                            print("condenser: " + line);
+                        }
+
+                    }
+                    if (boiler) {
+                        if (line.equals("<end>")) {
+                            boiler = false;
+                            print("end of boiler");
+                        } else {
+                            print("boiler: " + line);
+                        }
+
+                    }
+                    if (turbine) {
+                        if (line.equals("<end>")) {
+                            turbine = false;
+                            print("end of turbine");
+                        } else {
+                            print("turbine: " + line);
+                        }
+
+                    }
+                } else {
+
+                    if (line.equals("<pomp>")) {
+                        pomp = true;
+                        print("pomp enabled");
+                    }
+                    if (line.equals("<condenser>")) {
+                        condenser = true;
+                        print("condenser enabled");
+                    }
+                    if (line.equals("<boiler>")) {
+                        boiler = true;
+                        print("boiler enabled");
+                    }
+                    if (line.equals("<turbine>")) {
+                        turbine = true;
+                        print("turbine enabled");
+                    }
+
+                }
             }
-    //print("booh"+line);
+            in.close();
         }
-        in.close();
+        System.exit(3);
     }
 
     public void init() throws IOException {
@@ -78,7 +142,7 @@ public class MainThread {
 
         frame = new MainView(pomp.getJPanel(), boiler.getJPanel());
         sumThings();
-        fill(100, 50);
+        fill(80, 30);
 
     }
 
@@ -202,6 +266,34 @@ public class MainThread {
 
         fluid = Zfluid + Pfluid + gas;
         oldFluid = fluid;
+        evaporize();
+
+    }
+    private double r = 8.314472;
+
+    private void evaporize() {
+
+        double steamDensity = gas / (boiler.getVolume() - boiler.getFill());
+        print("Steam density: " + steamDensity);
+        double airPressure = (temp + 273) * r * (steamDensity / 18.02);
+        while (airPressure < Meth.boilingPressure(temp)) {
+            gas+=0.01;
+            Pfluid-=0.01;
+            steamDensity = gas / (boiler.getVolume() - boiler.getFill());
+            airPressure = (temp + 273) * r * (steamDensity / 18.02);
+        
+        }
+        print("airPressure: " + airPressure + "Pa,  boilingPressure: " + Meth.readbackdouble(Meth.boilingPressure(temp), 2) + "Pa");    
+
+    }
+    private void condense(){
+        gas-=0.01;
+        Zfluid+=0.01;
+    }
+        public void heat() {
+        temp += 0.01;
+        evaporize();
+        condense();
 
     }
 
@@ -306,12 +398,14 @@ public class MainThread {
 
     }
 
-    public void heat() {
-        //Work in Progress
 
-    }
 
     private void overFlow() {
         Pfluid = boiler.getVolume() * Rho + Meth.getArea(Pdiameter) * PtotaalLengte * Rho;
+    }
+
+    public JPanel getPanel() {
+
+        return pomp.getJPanel();
     }
 }
